@@ -1,0 +1,520 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<conio.h>
+#include<string.h>
+int password();
+struct Record
+{
+int id;
+char time[6];
+char name[30];
+char day[10];
+char note[100];
+}memo;
+// FUNCTION TO CHECK GIVEN ROLL NO IS AVAILABLE //
+int avlid(int rno)
+{
+FILE *fp;
+fp = fopen("Record", "r");
+while (!feof(fp))
+{
+fread(&memo, sizeof(memo), 1, fp);
+if (rno == memo.id)
+{
+fclose(fp);
+return 1;
+}
+}
+fclose(fp);
+return 0;
+}
+// FUNCTION TO INSERT RECORDS TO THE FILE
+void Add_Memo()
+{
+FILE *fp;
+fp = fopen("Record", "a+");
+printf("\t Enter the ID :");
+scanf("%d", &memo.id);
+printf("\t Enter the Time :");
+scanf("%s", memo.time);
+printf("\t Enter the Name :");
+scanf("%s", memo.name);
+printf("\t Enter the Day :");
+scanf("%s", memo.day);
+printf("\t Enter the Note :");
+scanf("%s",memo.note);
+fwrite(&memo, sizeof(memo), 1, fp);
+fclose(fp);
+}
+// FUNCTION TO ENCRYPT THE FILE.
+void Encryption()
+{
+char choice;
+choice = password();
+if(choice!=0)
+{
+return ;
+}
+FILE *fps, *fpt;
+char ch;
+fps=fopen("Record", "r");
+if(fps==NULL)
+{
+printf("Error in opening file..!!");
+getch();
+exit(1);
+}
+fpt=fopen("temp.txt", "w");
+if(fpt==NULL)
+{
+printf("Error in creating temp.txt file..!!");
+fclose(fps);
+getch();
+exit(2);
+
+}
+while(1)
+{
+ch=fgetc(fps);
+if(ch==EOF)
+{
+break;
+}
+else
+{
+ch=ch+100;
+fputc(ch, fpt);
+}
+}
+fclose(fps);
+fclose(fpt);
+fps=fopen("Record", "w");
+if(fps==NULL)
+{
+printf("Error in opening source file..!!");
+getch();
+exit(3);
+}
+fpt=fopen("temp.txt", "r");
+if(fpt==NULL)
+{
+printf("Error in opening temp.txt file...!!");
+fclose(fps);
+getch();
+exit(4);
+}
+while(1)
+{
+ch=fgetc(fpt);
+if(ch==EOF)
+{
+break;
+}
+else
+{
+fputc(ch, fps);
+}
+}
+printf("File %s encrypted successfully..!!", "Record");
+printf("\n");
+fclose(fps);
+
+fclose(fpt);
+getch();
+}
+//FUNCTION TO DECRYPT THE FILE
+void Decryption()
+{
+char choice;
+choice = password();
+if(choice!=0)
+{
+return ;
+}
+FILE *fps, *fpt;
+char ch;
+fps=fopen("Record", "w");
+if(fps==NULL)
+{
+printf("Error in opening source file..!!");
+getch();
+exit(7);
+}
+fpt=fopen("temp.txt", "r");
+if(fpt==NULL)
+{
+printf("Error in opening temp.txt file..!!");
+fclose(fps);
+getch();
+exit(9);
+}
+while(1)
+{
+ch=fgetc(fpt);
+if(ch==EOF)
+{
+break;
+}
+else
+{
+ch=ch-100;
+fputc(ch, fps);
+
+}
+}
+printf("File %s decrypted successfully..!!","record");
+fclose(fps);
+fclose(fpt);
+getch();
+}
+// FUNCTION TO DISPLAY RECORDS
+void View_Record()
+{
+char choice;
+choice = password();
+if(choice!=0)
+{
+return ;
+}
+FILE *fp1;
+fp1 = fopen("Record", "r");
+printf(" ID\tTime\t\t Name\t\t\t Day\t\t\tNote\n\n");
+while (fread(&memo, sizeof(memo), 1, fp1))
+printf(" %d\t%s\t\t%s\t\t%s\t\t%s\n", memo.id, memo.time, memo.name, memo.day, memo.note);
+fclose(fp1);
+}
+// FUNCTION TO SEARCH THE GIVEN RECORD
+void Search_Record()
+{
+char choice;
+choice = password();
+if(choice!=0)
+{
+return ;
+}
+FILE *fp2;
+
+int r, s, avl;
+printf("\nEnter the ID you want to search :");
+scanf("%d", &r);
+avl = avlid(r);
+if (avl == 0)
+printf("ID %d is not available in the file\n",r);
+else
+{
+fp2 = fopen("Record", "r");
+while (fread(&memo, sizeof(memo), 1, fp2))
+{
+s = memo.id;
+if (s == r)
+{
+printf("\nID : %d", memo.id);
+printf("\nTIME : %s", memo.time);
+printf("\nNAME : %s", memo.name);
+printf("\nDAY : %s", memo.day);
+printf("\nNOTE : %s", memo.note);
+}
+}
+fclose(fp2);
+}
+}
+// FUNCTION TO DELETE A RECORD
+void DeleteRecord()
+{
+char choice;
+choice = password();
+if(choice!=0)
+{
+return ;
+}
+FILE *fpo;
+FILE *fpt;
+int r, s;
+printf("Enter the ID you want to delete :");
+scanf("%d", &r);
+if (avlid(r) == 0)
+printf("ID %d is not available in the file\n", r);
+else
+
+{
+fpo = fopen("Record", "r");
+fpt = fopen("TempFile", "w");
+while (fread(&memo, sizeof(memo), 1, fpo))
+{
+s = memo.id;
+if (s != r)
+fwrite(&memo, sizeof(memo), 1, fpt);
+}
+fclose(fpo);
+fclose(fpt);
+fpo = fopen("Record", "w");
+fpt = fopen("TempFile", "r");
+while (fread(&memo, sizeof(memo), 1, fpt))
+fwrite(&memo, sizeof(memo), 1, fpo);
+printf("\nRECORD DELETED\n");
+fclose(fpo);
+fclose(fpt);
+}
+}
+//Password Function to Secure file from unauthorized access
+int password()
+{
+char pass[15]= {0},check[15]= {0},ch;
+FILE *fpp;
+int i=0,j;
+printf("\n::FOR SECURITY PURPOSE::");
+printf("::ONLY THREE TRIALS ARE ALLOWED::");
+for(j=0; j<3; j++)
+{
+i=0;
+printf("\n\n\tENTER THE PASSWORD:");
+pass[0]=getch();
+while(pass[i]!='\r')
+{
+if(pass[i]=='\b')
+{
+i--;
+printf("\b");
+printf(" ");
+
+printf("\b");
+pass[i]=getch();
+}
+else
+{
+printf("*");
+i++;
+pass[i]=getch();
+}
+}
+pass[i]='\0';
+fpp=fopen("SE.txt","r");
+if (fpp==NULL)
+{
+printf("\nERROR WITH THE SYSTEM FILE...[FILE MISSING]\n");
+getch();
+return 1;
+}
+else
+i=0;
+while(1)
+{
+ch=fgetc(fpp);
+if(ch==EOF)
+{
+check[i]='\0';
+break;
+}
+check[i] = ch-5;
+i++;
+}
+if(strcmp(pass,check)==0)
+{
+printf("\n\n\tACCESS GRANTED...\n");
+return 0;
+}
+else
+{
+printf("\n\n\tWRONG PASSWORD..\n\n\tACCESS DENIED...\n");
+}
+}
+printf("\n\n\t::YOU ENTERED WRONG PASSWORD::YOU ARE NOT ALLOWED TO ACCESS ANY FILE::\n\n\tPRESS ANY KEY TO GO BACK...");
+
+getch();
+return 1;
+}
+// FUNCTION TO UPDATE THE RECORD
+void Update_Record()
+{
+char choice;
+choice = password();
+if(choice!=0)
+{
+return ;
+}
+int avl;
+FILE *fpt;
+FILE *fpo;
+int s, r, ch;
+printf("Enter ID to update:");
+scanf("%d", &r);
+avl = avlid(r);
+if (avl == 0)
+{
+printf("ID %d is not Available in the file", r);
+}
+else
+{
+fpo = fopen("Record", "r");
+fpt = fopen("TempFile", "w");
+while (fread(&memo, sizeof(memo), 1, fpo))
+{
+s = memo.id;
+if (s != r)
+fwrite(&memo, sizeof(memo), 1, fpt);
+else
+{
+printf("\n\t1. Update ID of ID %d", r);
+printf("\n\t2. Update Time of ID %d", r);
+printf("\n\t3. Update Name of ID %d", r);
+printf("\n\t4. Update Day of ID %d", r);
+printf("\n\t5. Update Note of ID %d", r);
+
+printf("\nEnter your choice:");
+scanf("%d", &ch);
+switch (ch)
+{
+case 1:
+printf("Enter ID:");
+scanf("%d", &memo.id);
+break;
+case 2:
+printf("Enter Time : ");
+scanf("%s", memo.time);
+break;
+case 3:
+printf("Enter Name: ");
+scanf("%s", memo.name);
+break;
+case 4:
+printf("Enter Day: ");
+scanf("%s", memo.day);
+break;
+case 5:
+printf("Enter Note: ");
+scanf("%s", memo.note);
+break;
+default:
+printf("Invalid Selection");
+break;
+}
+fwrite(&memo, sizeof(memo), 1, fpt);
+}
+}
+fclose(fpo);
+fclose(fpt);
+fpo = fopen("Record", "w");
+fpt = fopen("TempFile", "r");
+while (fread(&memo, sizeof(memo), 1, fpt))
+{
+fwrite(&memo, sizeof(memo), 1, fpo);
+}
+fclose(fpo);
+fclose(fpt);
+printf("RECORD UPDATED");
+}
+}
+
+// FUNCTION TO SORT THE RECORD
+void Sort_Record()
+{
+char choice;
+choice = password();
+if(choice!=0)
+{
+return ;
+}
+int a[20], count = 0, i, j, t, c;
+FILE *fpo;
+fpo = fopen("Record", "r");
+while (fread(&memo, sizeof(memo), 1, fpo))
+{
+a[count] = memo.id;
+count++;
+}
+c = count;
+for (i = 0; i<count - 1; i++)
+{
+for (j = i + 1; j<count; j++)
+{
+if (a[i]>a[j])
+{
+t = a[i];
+a[i] = a[j];
+a[j] = t;
+}
+}
+}
+printf("ID\tTime\tName\tDay\tNote\n\n");
+count = c;
+for (i = 0; i<count; i++)
+{
+rewind(fpo);
+while (fread(&memo, sizeof(memo), 1, fpo))
+{
+if (a[i] == memo.id)
+printf("\n %d\t %s\t %s \t %s\t %s",memo.id, memo.time, memo.name, memo.day, memo.note);
+}
+}
+}
+
+//FUNCTION TO CHECK THE FILE IS EMPTY OR NOT
+int empty()
+{
+int c = 0;
+FILE *fp;
+fp = fopen("Record", "r");
+while (fread(&memo, sizeof(memo), 1, fp))
+c = 1;
+fclose(fp);
+return c;
+}
+// Driver Function to Run the PROGRAM
+int main()
+{
+int emp;
+int c, i=1;
+while(i>0)
+{
+printf("\n\n\n--------------------\tRECORD MEMO\t--------------------\n\n");
+printf("\n---------------\t Select your choice\t--------------------\n");
+printf("\n\t1. ADD RECORD\n\t2. VIEW RECORD\n\t3. SEARCH RECORD");
+printf("\n\t4. DELETE RECORD\n\t5. UPDATE RECORD\n\t6. SORT RECORD");
+printf("\n\t7. ENCRYPT RECORD\n\t8. DECRYPT RECORD\n\t9. EXIT");
+printf("\n\n------------------------------------------------------------\n");
+printf("\nEnter your choice: ");
+scanf("%d", &c);
+switch (c)
+{
+case 1:
+Add_Memo();
+break;
+case 2:
+emp = empty();
+if (emp == 0)
+printf("\nThe file is EMPTY\n");
+else
+View_Record();
+break;
+case 3:
+Search_Record();
+break;
+case 4:
+DeleteRecord();
+break;
+case 5:
+Update_Record();
+break;
+case 6:
+emp = empty();
+if (emp == 0)
+printf("\n The file is EMPTY\n");
+else
+Sort_Record();
+break;
+case 7:
+Encryption();
+break;
+case 8:
+Decryption();
+break;
+case 9:
+exit(0);
+break;
+default:
+printf("\nYour choice is wrong\nPlease try again...\n");
+break;
+}
+}
+return 0;
+}
